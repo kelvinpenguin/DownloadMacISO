@@ -61,16 +61,21 @@ jobs:
       - if: github.event.inputs.file == 'iso'
         name: Generate macOS ISO Installer
         run: |
-          sudo hdiutil create -o /tmp/'${{ env.installer_name }}' -size 18000m -volname '${{ env.installer_name }}' -layout SPUD -fs HFS+J
-          sudo hdiutil attach /tmp/'${{ env.installer_name }}'.dmg -noverify -mountpoint /Volumes/'${{ env.installer_name }}'
+          INSTALLER_PATH="$HOME/${{ env.installer_name }}"
+          sudo hdiutil create -o "$INSTALLER_PATH" -size 18000m -volname '${{ env.installer_name }}' -layout SPUD -fs HFS+J
+          sudo hdiutil attach "$INSTALLER_PATH.dmg" -noverify -mountpoint "/Volumes/${{ env.installer_name }}"
           sleep 20
-          sudo /Applications/'Install macOS ${{ env.installer_name }}'.app/Contents/Resources/createinstallmedia --volume /Volumes/'${{ env.installer_name }}' --nointeraction
+
+          sudo /Applications/"Install macOS ${{ env.installer_name }}.app"/Contents/Resources/createinstallmedia --volume "/Volumes/${{ env.installer_name }}" --nointeraction
           echo "Sleeping 100 to allow the installer to finish"
           sleep 100
-          hdiutil eject -force /Volumes/'Install macOS ${{ env.installer_name }}'
-          hdiutil convert /tmp/'${{ env.installer_name }}'.dmg -format UDTO -o ~/Desktop/'${{ env.installer_name }}'
-          mv -v ~/Desktop/'${{ env.installer_name }}'.cdr ~/Desktop/'${{ env.installer_name }}'.iso
-          sudo rm -fv /tmp/'${{ env.installer_name }}'.dmg
+
+          hdiutil eject -force "/Volumes/Install macOS ${{ env.installer_name }}"
+          hdiutil convert "$INSTALLER_PATH.dmg" -format UDTO -o "$HOME/Desktop/${{ env.installer_name }}"
+          mv -v "$HOME/Desktop/${{ env.installer_name }}.cdr" "$HOME/Desktop/${{ env.installer_name }}.iso"
+
+          sudo rm -fv "$INSTALLER_PATH.dmg"
+
 
       - if: github.event.inputs.file == 'zip'
         name: Generate macOS ZIP Installer
